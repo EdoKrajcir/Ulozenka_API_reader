@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html >
+    <head>
+        <!-- meta tagy -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+        <link rel="stylesheet" href="{{ asset('css/bootiq.css') }}" type="text/css">
+        <!--<script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAAdX6eMxlBuAriBlS44VlW2YuFqnijvA&callback=initMap"></script>-->
+        <script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+
+        <!-- title webu -->
+        <title>{% block title %}Uloženka.cz-API{% endblock %}</title>
+
+
+        <!-- definuj pole v JS -->
+        <script>
+            var locations = new Array();
+        </script>
+        <!-- pre kazdy prvok pola branchList vytvor JS prvok pola locations obsahujuci potrebne info -->
+        {% for branch in branches %}
+        <script>
+            locations.push(['{{ branch.getAddress() }}',
+            '{{ branch.getLocation().getLat() }}',
+            '{{ branch.getLocation().getLng() }}',
+            '{{ branch.getWeb() }}',
+            '{{ branch.getInternalName() }}']);
+        </script>
+        {% endfor %}
+
+
+        <!-- navbar fixovany na vrch obrazovky -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <a href="/" class="navbar-brand">Uloženka.cz</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="container">
+                        <ul class="navbar-nav mr-auto ml-5">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="/">Zoznam pobočiek
+                                  <span class="sr-only">(current)</span>
+                                </a>
+                            </li>
+                        </ul>
+                </div>
+                <form class="form-inline" role="search" id="nav-search-form" method="post" action="{{ path('search', {'branches' : branches}) }}">
+                    <div class="input-group">
+                        <input type="text" {% if query is defined %} value="{{ query }}" {% endif %}
+                        class="form-control" placeholder="Vyhľadať pobočku" name ="search">
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-danger"> Hľadať </button>
+                        <span>
+                    </div>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Element zobrazujuci google map api-->
+        <div id="map"> </div>
+        <!-- script ktory inicializuje mapu a naplni ju markermi -->
+        <script type="text/javascript">
+            console.log(locations);
+
+            //inicializuj mapu, vycentruj an zadany center-point
+            var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 7,
+            center: new google.maps.LatLng(49.2309574, 17.5360781),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+
+            var infowindow = new google.maps.InfoWindow();
+
+            var marker, i;
+
+            //Pre kazdy marker z pola "locations" - pridaj na mapu
+            for (i = 0; i < locations.length; i++) { 
+            marker = new google.maps.Marker({
+                position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                map: map
+            });
+
+            //pridaj k markeru interaktivne okno
+            google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                return function() {
+                infowindow.setContent(
+                    '<p>' + locations[i][0] + '</p>'+
+                        '<div class="btn-toolbar" role="group">' + 
+                            //scroll down tlacidlo na prechod na karticku pobocky
+                            '<a class="" href="#' + locations[i][4] + '">'+
+                                '<button type="button" class="btn btn-danger pl-3">Otvaracia doba '+
+                                    '<i class="bi bi-caret-down-fill my-auto"></i>'+ 
+                                '</button>'+
+                            '</a>'+
+                            //tlacidlo na prechod na web odkaz
+                            '<div class="ml-auto">'+
+                                '<a class="" href="' + locations[i][3] + '">'+
+                                    '<button type="button" class="btn btn-danger pl-3">Web '+
+                                        '<i class="bi bi-caret-right-fill my-auto"></i>'+
+                                    '</button>'+
+                                '</a>'+
+                            '</div>'+
+                        '</div>');
+                infowindow.open(map, marker);
+                }
+            })(marker, i));
+            }
+        </script>
+
+        
+    </head>
+    <body>
+
+    <div id="pobocky"></div>
+
+    <!-- Scroll down tlacidlo, prechod na zoznam pobociek -->
+    <div class="jumbotron">
+        <div class="container">
+            <a href="#pobocky" class="center">
+                        <h1 class="animate__animated animate__bounce">
+                            {% if query is defined %} Najdené pobočky 
+                            {% else %} Zoznam pobočiek
+                            {% endif %}
+                            <i class="bi bi-caret-down-fill"></i>
+                        </h1>
+            </a>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <!-- Ak bolo zadane query, vypis ho -->
+        {% if query is defined %}<p> Zobrazujú sa výsledky pre: "{{ query }}". </p>{% endif %}
+        <p>Počet pobočiek: {{ branches|length }}</p>
+
+
+        <!-- Vypis bobociek z branch-listu -->
+            <div class="row">
+                {% for branch in branches %}
+                
+                    <div id="{{ branch.getInternalName() }}" class="col-12 col-sm-12 col-md-6 col-lg-4 mb-3">
+                        <div class="card shadow d-flex shadow" style="width: 100%; height: 100%;" data-animate-effect="fadeInLeft" style="min-width: 18rem;">
+                            <div class="card-body d-flex flex-column m-3">
+                                <h5 class="card-title"> {{ branch.getAddress() }} </h5>
+                                <ul>
+                                    {% for day in branch.getBusinessHours() %}
+                                        <li class="card-text">
+                                        {% set dayOfWeek = day.getDayOfWeek() %}
+                                        <!-- switch tu vo for cykle hadze chybu -->
+                                        {% if dayOfWeek  == 1 %}Pon: {% endif %}
+                                        {% if dayOfWeek  == 2 %}Ut: {% endif %}
+                                        {% if dayOfWeek  == 3 %}Str: {% endif %}
+                                        {% if dayOfWeek  == 4 %}Št: {% endif %}
+                                        {% if dayOfWeek  == 5 %}Pia: {% endif %}
+                                        {% if dayOfWeek  == 6 %}So: {% endif %}
+                                        {% if dayOfWeek  == 7 %}Ne: {% endif %}
+                                        {{day.getBusinessHour()}}</li>
+
+                                    {% endfor %}
+                                    {% if branch.getActive() == 0 %} 
+                                    <p class="oznam">zatvorené</p>
+                                    {% else %}   
+                                    {% endif %}
+                                    {% if branch.getAnnouncement() is empty == false %} 
+                                    <p class="oznam">{{branch.getAnnouncement()}}</p>
+                                    {% endif %}
+                                </ul>
+                                
+                                <a href={{ branch.getWeb() }} class="align-self-end mt-auto ml-auto"> 
+                                    <button class="btn btn-danger"> Web </button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+    </div>
+    
+    
+    <!-- Footer s osobnymi info -->
+        <footer class="pt-md-5 mt-3">
+            <div class="row">
+                <div class="col-3 ml-5 mt-4">
+                    <img class="footer-photo mb-2" src="{{ asset('images/Eduard_Krajcir.jpg') }}" alt="Eduard Krajčír">
+                    <small class="d-block text-muted">&copy; 2021</small>
+                </div>
+                <div class="col-3 mt-5">
+                    <ul class="list-unstyled text-small">
+                        <li><a class="text-muted">Uloženka.cz API</a></li>
+                        <li><a class="text-muted">Eduard Krajčír</a></li>
+                        <li><a class="text-muted">edokrajcir@gmail.com</a></li>
+                        <li><a class="text-muted">+421 908 526 098</a></li>
+                    </ul>
+                </div>
+                <div class="col-3 mt-5">
+                    <ul class="text-small">
+                        <li><a class="text-muted footer-link" href="{{ asset('cv/CV_Eduard_Krajcir.pdf') }}">Životopis</a></li>
+                        <li><a class="text-muted footer-link" href="mailto:edokrajcir@gmail.com">Poslať email</a></li>
+                        <li><a class="text-muted footer-link" href="https://github.com/EdoKrajcir">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
+
+
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+
+
+    </body>
+</html>

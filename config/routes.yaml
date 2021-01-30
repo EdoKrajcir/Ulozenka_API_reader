@@ -1,3 +1,17 @@
-#index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+index:
+    path: /test
+    controller: App\Controller\UserController::notifications
+test:
+    path: /
+    controller: App\Controller\BranchController::getUlozenkaBranches
+api:
+    path: /api
+    controller: App\Controller\ListController::bootiq
+
+branches:
+    path: /branches
+    controller: App\Controller\ListController::callAPI
+
+search:
+    path: /search
+    controller: App\Controller\BranchController::getUlozenkaBranches
