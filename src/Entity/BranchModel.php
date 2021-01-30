@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\BranchRepository;
-use Doctrine\ORM\Mapping as ORM;
+use App\Entity\BusinessHourModel;
 
 
-class Branch
+class BranchModel
 {
     /** @var int */
     private $id;
@@ -170,89 +169,3 @@ class Branch
         return $this;
     }
 }
-
-class BusinessHourModel
-{
-    /** @var int */
-    private $dayOfWeek;
-    
-    /** @var string */
-    private $businessHour;
-
-
-
-    public function getDayOfWeek(): ?int
-    {
-        return $this->dayOfWeek;
-    }
-
-    public function setDayOfWeek(int $dayOfWeek): self
-    {
-        $this->dayOfWeek= $dayOfWeek;
-
-        return $this;
-    }
-
-
-
-    public function getBusinessHour(): ?string
-    {
-        return $this->businessHour;
-    }
-
-    public function setBusinessHour(string $businessHour): self
-    {
-        $this->businessHour = $businessHour;
-
-        return $this;
-    }
-
-    public function addBusinessHour(string $businessHour): self
-    {
-        $this->businessHour .= " , ";
-        $this->businessHour .= $businessHour;
-
-        return $this;
-    }
-
-}
-
-class Coordinates
-{
-    /** @var float */
-    private $lat;
-    
-    /** @var float */
-    private $lng;
-
-
-    public function getLat(): ?float
-    {
-        return $this->lan;
-    }
-
-    public function setLat(float $lan): self
-    {
-        $this->lan= $lan;
-
-        return $this;
-    }
-
-
-
-    public function getLng(): ?float
-    {
-        return $this->lng;
-    }
-
-    public function setLng(float $lng): self
-    {
-        $this->lng = $lng;
-
-        return $this;
-    }
-
-}
-
-
-
